@@ -1,6 +1,29 @@
 
 import numpy as np
 import matplotlib as mt
+import time
+
+def TicTocGenerator():
+    # Generator that returns time differences
+    ti = 0           # initial time
+    tf = time.time() # final time
+    while True:
+        ti = tf
+        tf = time.time()
+        yield tf-ti # returns the time difference
+
+TicToc = TicTocGenerator() # create an instance of the TicTocGen generator
+
+# This will be the main function through which we define both tic() and toc()
+def toc(tempBool=True):
+    # Prints the time difference yielded by generator instance TicToc
+    tempTimeInterval = next(TicToc)
+    if tempBool:
+        print( "Elapsed time: %f seconds.\n" %tempTimeInterval )
+
+def tic():
+    # Records a time in TicToc, marks the beginning of a time interval
+    toc(False)
 
 
 def weighted_sphere_function(x, dim):
@@ -9,16 +32,16 @@ def weighted_sphere_function(x, dim):
     return wv
 
 
-def approx_gradient(x, lm, wv):
-    h = 10**-lm * np.linalg.norm(x)
+def approx_gradient(x, l, wv):
+    h = 10 ** -l * np.linalg.norm(x)
     i = x.shape[0]
     fin_diff = np.zeros(i)
-    ei = np.zeros(i)
+    #ei = np.zeros(i)
     for j, k in enumerate(x):
-        ei[j] = h
-        fin_diff[j] = (weighted_sphere_function(x+ei, i) - wv)/h
-        ei[j] = 0
+        xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
     return fin_diff
+
 
 
 def Pi_x(x):
@@ -34,7 +57,7 @@ def f_armijo_condition(fx,  gradfx, c1, alpha, direcx):
 
 
 if __name__ == '__main__':
-
+    tic()
     n_val = 10**3
 
     # stablishing x_0 in  n_val
@@ -55,7 +78,7 @@ if __name__ == '__main__':
     c1 = 1e-4
     rho = 0.8
 
-    l = 12
+    l = 6
 
     # Defining the dominio
     #INIZIALIZATIONS FOR THE PROCESS:
@@ -112,5 +135,6 @@ if __name__ == '__main__':
 
     print(f"Last iteration: {xk}")
     print(f"Number of iterations: {k}, norm gradient: {gradfk_norm}, value function f(x)= {f_xk}")
+    toc()
     #print(f"Matrix of x:{xseq}")
 

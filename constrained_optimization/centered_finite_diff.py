@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib as mt
 import time
 
-#Code for counting the tie
 def TicTocGenerator():
     # Generator that returns time differences
     ti = 0           # initial time
@@ -29,14 +28,22 @@ def tic():
 
 def weighted_sphere_function(x, dim):
     natural_numbers = np.arange(1, dim + 1)
-    weighted_value = (x * natural_numbers) @ np.transpose(x)
-    return weighted_value
+    wv = (x * natural_numbers) @ np.transpose(x)
+    return wv
 
 
-def exact_gradient(x, dim):
-    natural_numbers = np.arange(1, dim + 1)
-    eg = 2 * x * natural_numbers
-    return eg
+def approx_gradient(x, l, wv):
+    h = 10 ** -l * np.linalg.norm(x)
+    i = x.shape[0]
+    fin_diff = np.zeros(i)
+    for j, k in enumerate(x):
+        a = np.array(x[0:j])
+        b = np.array(x[j+1:])
+        xhp = np.concatenate((a, x[j]+h, b), axis=None)
+        xhn = np.concatenate((a, x[j]-h, b), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xhp, i) -
+                       weighted_sphere_function(xhn, i)) / h
+    return fin_diff
 
 
 def Pi_x(x):
@@ -52,68 +59,76 @@ def f_armijo_condition(fx,  gradfx, c1, alpha, direcx):
 
 
 if __name__ == '__main__':
+
     tic()
-    n_val = 10**4
+    n_val = 10**3
 
     # stablishing x_0 in  n_val
-    x0 = np.random.default_rng(seed=43).uniform(-50, 50, n_val)
+    x0 = np.random.default_rng(seed=42).uniform(-5, 5, n_val)
+
+    #DEFINING THE VECTOR DE PRUEBA
+
+    #vector_center = np.zeros(s_arr)
+    #vector_boundaries = np.repeat(limit_values, s_arr, axis=1)
+    #print(vector_boundaries)
 
     #VARIABLES NEEDED FOR THE PROCESS
     #number max of iterations
-    kmax = 10000
+    kmax = 1000
     btmax = 100
     tolerance = 1e-12
-    gamma = 0.1e-1
+    gamma = 1e-1
     c1 = 1e-4
     rho = 0.8
 
-    # Defining the dominio
+    l = 6
 
+    # Defining the dominio
     #INIZIALIZATIONS FOR THE PROCESS:
 
     k=0 #number of iterations
 
+    #checking if the x0 is out of bounds
+
     #defining the values of the function for x_PRUEBA
     f_xk = weighted_sphere_function(x0, n_val)
-    print(f'El valor de la func en el punt inicial: {f_xk}')
+
     #definig the exact gradient:
-    g_xk = exact_gradient(x0, n_val)
+    g_xk= approx_gradient(x0, l, f_xk)
 
     gradfk_norm = np.linalg.norm(g_xk)
     deltaxk_norm = tolerance + 1
 
     xk = x0
-    # checking if the x0 is out of bounds
     xk = Pi_x(x0)
-    alpha = 1
     while k < kmax and gradfk_norm >= tolerance and deltaxk_norm >= tolerance:
-        pk = -exact_gradient(xk, n_val)
+        pk = -approx_gradient(xk, l, f_xk)
         xstepk = xk + gamma * pk
         xbark = Pi_x(xstepk)
 
+        alpha = 1
         direc_xk = xbark - xk
         x_def = xk + alpha * direc_xk
+
         f_def = weighted_sphere_function(x_def, n_val)
-        f_arm = f_armijo_condition(f_xk, g_xk, c1, alpha, direc_xk)
 
         bt = 0
-        alpha_bt = alpha
+        f_arm = f_armijo_condition(f_xk, g_xk, c1, alpha, direc_xk)
+
         while bt < btmax and f_def > f_arm:
-            alpha_bt = rho * alpha_bt
-            x_def = xk + alpha_bt * direc_xk
+            alpha = rho * alpha
+            x_def = xk + alpha * direc_xk
             f_def = weighted_sphere_function(x_def, n_val)
-            bt = bt + 1
+
+            bt=bt+1
 
         deltaxk_norm = np.linalg.norm(x_def - xk)
         xk = x_def
         f_xk = f_def
 
-        g_xk = exact_gradient(xk, n_val)
+        g_xk = approx_gradient(xk, l, f_xk)
         gradfk_norm = np.linalg.norm(g_xk)
         k = k + 1
-
-        if k % 500 == 0:
-            print(f' norm gradient: {gradfk_norm}, value function f(x)= {f_xk}')
 
         #xseq[k:] = xk
         #btseq[:k] = bt

@@ -20,10 +20,35 @@ def exact_gradient(x):
         grad_vector[j] = (2 * (j + 1) * k)
     return grad_vector
 
+
 def grad_matrix(x, dim):
     natural_numbers = np.arange(1, dim + 1)
     gm = 2 * x * natural_numbers
     return gm
+
+def approx_gradient(x, l, wv):
+    h = 10 ** -l * np.linalg.norm(x)
+    i = x.shape[0]
+    fin_diff = np.zeros(i)
+    for j, k in enumerate(x):
+        a = np.array(x[0:j])
+        b = np.array(x[j+1:])
+        xhp = np.concatenate((a, x[j]+h, b), axis=None)
+        xhn = np.concatenate((a, x[j]-h, b), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xhp, i) -
+                       weighted_sphere_function(xhn, i)) / h
+    return fin_diff
+
+
+def approx_gradient_centered(x, l, wv):
+    h = 10 ** -l * np.linalg.norm(x)
+    i = x.shape[0]
+    fin_diff = np.zeros(i)
+    #ei = np.zeros(i)
+    for j, k in enumerate(x):
+        xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
+    return fin_diff
 
 def Pi_x(x):
     x_projected = x

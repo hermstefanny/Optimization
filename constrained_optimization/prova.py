@@ -10,14 +10,14 @@ def weighted_sphere_function(x, dim):
 
 def approx_gradient(x, l, wv):
     h = 10 ** -l * np.linalg.norm(x)
-    #print(f"The value of h {h}")
     i = x.shape[0]
     fin_diff = np.zeros(i)
-    ei = np.zeros(i)
+    #ei = np.zeros(i)
     for j, k in enumerate(x):
-        ei[j] = h
-        fin_diff[j] = (weighted_sphere_function(x+ei, i) - wv) / h
-        ei[j] = 0
+        xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
+        print(f'El array original  es {x}')
+        print(f'El array es {xh} y el de diff finitas es {fin_diff}')
     return fin_diff
 
 
@@ -28,12 +28,11 @@ def exact_gradient(x, dim):
 
 
 if __name__ == '__main__':
-    n_val = 10**3
+    n_val = 10**1
 
-    l = 6
-
-    # establishing x_0 in  n_val
-    x0 = np.random.default_rng(seed=42).uniform(-5.12, 5.12, n_val)
+    l=6
+    # stablishing x_0 in  n_val
+    x0 = np.random.default_rng(seed=42).uniform(-5, 5, n_val)
     #print(x0)
 
     f_xk = weighted_sphere_function(x0, n_val)
