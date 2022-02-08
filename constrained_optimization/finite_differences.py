@@ -43,7 +43,6 @@ def approx_gradient(x, l, wv):
     return fin_diff
 
 
-
 def Pi_x(x):
     x_projected = x
     x_projected[np.where(x < -5.12)] = -5.12
