@@ -54,14 +54,14 @@ def f_armijo_condition(fx, grad_fx, sigma_k, alpha_k, direction):
 
 
 if __name__ == '__main__':
+
     tic()
+
+    # number of values in vector x
     n_val = 10**3
 
-    # stablishing x_0 in  n_val
-    x0 = np.random.default_rng(seed=43).uniform(-10, 10, n_val)
 
-    #VARIABLES NEEDED FOR THE PROCESS
-    #number max of iterations
+    # INIZIALIZATIONS FOR THE PROCESS:
     k_max = 1000
     bt_max = 100
     tolerance = 1e-12
@@ -70,27 +70,43 @@ if __name__ == '__main__':
     beta = 0.8
     alpha = 1
 
-    # Defining the domain
-    #INIZIALIZATIONS FOR THE PROCESS:
+    # Number of data points to be stored for the table
+    data_points = k_max / 100
 
-    k = 0 #number of iterations
+    # Vectors to store values for tables
+    grad_norm_table = np.zeros(data_points)
+    f_k_table = np.zeros(data_points)
+    step_table = np.zeros(data_points)
 
-    #defining the values of the function for x_PRUEBA
+    # Vectors to store values for graphs
+    grad_norm_vector_graph = np.zeros(k_max)
+    f_k_vector_graph = np.zeros(k_max)
+    step_vector_graph = np.zeros(k_max)
+    bt_vector = np.zeros(k_max)
+
+    # Generating random x_0 with seed
+    x0 = np.random.default_rng(seed=43).uniform(-10, 10, n_val)
+
+    # value of f(x)
     f_xk = weighted_sphere_function(x0, n_val)
     print(f'The value of the function in x0: {f_xk}')
-    #definig the exact gradient:
+
+    # Calling the function exact gradient in x0:
     g_xk = exact_gradient(x0, n_val)
 
+    # Calculating the norm of the gradient in x0
     grad_xk_norm = np.linalg.norm(g_xk)
     delta_xk_norm = tolerance + 1
+
 
     x_k = x0
     # checking if the x0 is out of bounds
     x_k = Pi_x(x0)
 
-    grad_norm_vector = np.zeros(k_max)
-    f_k_vector = np.zeros(k_max)
-    bt_vector = np.zeros(k_max)
+    # initial number of iterations
+    k = 0
+
+
 
     while k < k_max and grad_xk_norm >= tolerance and delta_xk_norm >= tolerance:
         p_k = -exact_gradient(x_k, n_val)
@@ -122,21 +138,23 @@ if __name__ == '__main__':
         g_xk = exact_gradient(x_k, n_val)
         grad_xk_norm = np.linalg.norm(g_xk)
 
-        grad_norm_vector[k] = grad_xk_norm
-        f_k_vector[k] = f_xk
+        grad_norm_vector_graph[k] = grad_xk_norm
+        f_k_vector_graph[k] = f_xk
 
         k = k + 1
 
-        if k % 50 == 0:
-            print(f' norm gradient: {grad_xk_norm}, value function f(x)= {f_xk}, value of step = {delta_xk_norm}')
+        if k % 100 == 0:
+            print(f' norm gradient: {grad_xk_norm}, '
+                  f'value function f(x)= {f_xk}, '
+                  f'value of step = {delta_xk_norm}')
 
         #xseq[k:] = xk
 
     #xseq = xseq[1:k, :]
     #btseq = btseq[:, 1:k]
 
-    grad_norm_vector = grad_norm_vector[:k]
-    f_k_vector = f_k_vector[:k]
+    grad_norm_vector_graph = grad_norm_vector_graph[:k]
+    f_k_vector_graph = f_k_vector_graph[:k]
     bt_vector = bt_vector[:k]
 
     num_iterations = list(range(0, k))
@@ -151,7 +169,7 @@ if __name__ == '__main__':
     print(f"The individuals values of the last iteration are within: {min_value} and {max_value}")
     toc()
 
-    plt.plot(num_iterations, grad_norm_vector, '-', linewidth=0.5, c= 'g')
+    plt.plot(num_iterations, grad_norm_vector_graph, '-', linewidth=0.5, c='g')
     plt.title("Norm of the gradient vs Step")
     plt.xlabel("Number of iterations")
     plt.ylabel("Norm of the gradient")
@@ -161,7 +179,7 @@ if __name__ == '__main__':
     plt.show()
 
 
-    plt.plot(num_iterations, f_k_vector, '-',linewidth=1,  c='b')
+    plt.plot(num_iterations, f_k_vector_graph, '-', linewidth=1, c='b')
     plt.title("Value of the function vs Step")
     plt.xlabel("Number of iterations")
     plt.ylabel("f(x)")
