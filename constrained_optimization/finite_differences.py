@@ -1,8 +1,11 @@
 
 import numpy as np
 import matplotlib as mt
+import matplotlib.pyplot as plt
 import time
 
+#CODE OBTAINED IN
+#Code for counting the time
 def TicTocGenerator():
     # Generator that returns time differences
     ti = 0           # initial time
@@ -25,115 +28,222 @@ def tic():
     # Records a time in TicToc, marks the beginning of a time interval
     toc(False)
 
+# DEFINITIONS OF FUNCTIONS TO BE CALLED IN MAIN
 
+# Function f(x):
 def weighted_sphere_function(x, dim):
     natural_numbers = np.arange(1, dim + 1)
-    wv = (x * natural_numbers) @ np.transpose(x)
-    return wv
+    weighted_value = (x * natural_numbers) @ np.transpose(x)
+    return weighted_value
 
 
-def approx_gradient(x, l, wv):
-    h = 10 ** -l * np.linalg.norm(x)
+def approx_gradient(x, lp, wv):
+    h = 10 ** -lp * np.linalg.norm(x)
     i = x.shape[0]
     fin_diff = np.zeros(i)
-    #ei = np.zeros(i)
     for j, k in enumerate(x):
         xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
         fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
     return fin_diff
 
 
+# Function Exact Gradient:
+def exact_gradient(x, dim):
+    natural_numbers = np.arange(1, dim + 1)
+    eg = 2 * x * natural_numbers
+    return eg
+
+# Function Projection of a point (x)
 def Pi_x(x):
     x_projected = x
     x_projected[np.where(x < -5.12)] = -5.12
     x_projected[np.where(x > 5.12)] = 5.12
     return x_projected
 
-
-def f_armijo_condition(fx,  gradfx, c1, alpha, direcx):
-    fk_arm = fx +c1 * alpha * (gradfx @ direcx)
+# Function of the Armijo Condition
+def f_armijo_condition(fx, grad_fx, sigma_k, alpha_k, direction):
+    fk_arm = fx + sigma_k * alpha_k * (grad_fx @ direction)
     return fk_arm
 
 
+# Main
 if __name__ == '__main__':
+
     tic()
-    n_val = 10**3
 
-    # stablishing x_0 in  n_val
-    x0 = np.random.default_rng(seed=42).uniform(-5, 5, n_val)
+    # Number of values in vector x
+    n_val = 10**4
 
-    #DEFINING THE VECTOR DE PRUEBA
-
-    #vector_center = np.zeros(s_arr)
-    #vector_boundaries = np.repeat(limit_values, s_arr, axis=1)
-    #print(vector_boundaries)
-
-    #VARIABLES NEEDED FOR THE PROCESS
-    #number max of iterations
-    kmax = 1000
-    btmax = 100
+    # INIZIALIZATIONS OF PARAMETERS FOR THE PROCESS:
+    k_max = 100000
+    bt_max = 100
     tolerance = 1e-12
     gamma = 1e-1
-    c1 = 1e-4
-    rho = 0.8
+    sigma = 1e-4
+    beta = 0.8
+    alpha = 1
 
-    l = 6
+    l = 2
 
-    # Defining the dominio
-    #INIZIALIZATIONS FOR THE PROCESS:
+    # Number of data points to be stored in the table
 
-    k=0 #number of iterations
+    # # Vectors to store values for tables
+    # grad_norm_table = np.zeros(data_points)
+    # f_k_table = np.zeros(data_points)
+    # step_table = np.zeros(data_points)
+    # num_points = np.zeros(data_points)
+    # Initial value for the vector of data points
 
-    #checking if the x0 is out of bounds
 
-    #defining the values of the function for x_PRUEBA
+    # Vectors to store values for graphs
+    grad_norm_vector_graph = np.zeros(k_max)
+    f_k_vector_graph = np.zeros(k_max)
+    step_vector_graph = np.zeros(k_max)
+    bt_vector = np.zeros(k_max)
+
+    # Generating random x_0 with seed:
+    x0 = np.random.default_rng(seed=43).uniform(-10, 10, n_val)
+
+    # Calling of function f(x) in x0:
     f_xk = weighted_sphere_function(x0, n_val)
+    print(f'The value of the function in x0: {f_xk}')
 
-    #definig the exact gradient:
-    g_xk= approx_gradient(x0, l, f_xk)
+    # Calling of function exact gradient in x0:
+    g_xk = approx_gradient(x0, l, f_xk)
 
-    gradfk_norm = np.linalg.norm(g_xk)
-    deltaxk_norm = tolerance + 1
+    # Calculating the norm of the gradient in x0:
+    grad_xk_norm = np.linalg.norm(g_xk)
 
-    xk = x0
-    xk = Pi_x(x0)
-    while k < kmax and gradfk_norm >= tolerance and deltaxk_norm >= tolerance:
-        pk = -approx_gradient(xk, l, f_xk)
-        xstepk = xk + gamma * pk
-        xbark = Pi_x(xstepk)
+    # Establishing the first step as:
+    delta_xk_norm = tolerance + 1
 
-        alpha = 1
-        direc_xk = xbark - xk
-        x_def = xk + alpha * direc_xk
+    # Storing x0:
+    x_k = x0
 
-        f_def = weighted_sphere_function(x_def, n_val)
+    # Checking if  x0 is out of bounds:
+    x_k = Pi_x(x0)
 
+    # initial number of iterations
+    k = 0
+
+    # OUTER ITERATIONS WITH WHILE LOOP
+    while k < k_max and grad_xk_norm >= tolerance and delta_xk_norm >= tolerance:
+        # Establishing the direction of the gradient:
+        p_k = -approx_gradient(x_k, l, f_xk)
+        # Gradient step:
+        x_hat_k = x_k + gamma * p_k
+        # Projection step:
+        x_bar_k = Pi_x(x_hat_k)
+        # Direction of the projection:
+        direc_x_k = x_bar_k - x_k
+        # Calculating x_k+1 with not-reduced alpha
+        x_next = x_k + alpha * direc_x_k
+        # Value of function in x_k+1
+        f_next = weighted_sphere_function(x_next, n_val)
+
+        # INNER ITERATIONS
+        # Calling of function of Armijo Condition for condition in while loop
+        f_arm = f_armijo_condition(f_xk, g_xk, sigma, alpha, direc_x_k)
+
+        # Inizialization of values for inner iterations
         bt = 0
-        f_arm = f_armijo_condition(f_xk, g_xk, c1, alpha, direc_xk)
+        alpha_bt = alpha
 
-        while bt < btmax and f_def > f_arm:
-            alpha = rho * alpha
-            x_def = xk + alpha * direc_xk
-            f_def = weighted_sphere_function(x_def, n_val)
+        while bt < bt_max and f_next > f_arm:
+            # Reducing the alpha:
+            alpha_bt = beta * alpha_bt
+            # Calculating x_k+1
+            x_next = x_k + alpha_bt * direc_x_k
+            # Calculating f(x_k+1)
+            f_next = weighted_sphere_function(x_next, n_val)
+            # Updating the condition
+            f_arm = f_armijo_condition(f_xk, g_xk, sigma, alpha_bt, direc_x_k)
+            # Increasing inner iterations
+            bt = bt + 1
 
-            bt=bt+1
+        # Saving the final number of the inner iteration
+        bt_vector[k] = bt
 
-        deltaxk_norm = np.linalg.norm(x_def - xk)
-        xk = x_def
-        f_xk = f_def
+        # Calculating the step with the norm of x_k+1 - x_k
+        delta_xk_norm = np.linalg.norm(x_next - x_k)
+        # Actualizing the values of x_k, f(x_k),  gradient in x_k and its norm
+        x_k = x_next
+        f_xk = f_next
+        g_xk = approx_gradient(x_k, l, f_xk)
+        grad_xk_norm = np.linalg.norm(g_xk)
 
-        g_xk = approx_gradient(xk, l, f_xk)
-        gradfk_norm = np.linalg.norm(g_xk)
+        # Saving values for the graphs:
+        grad_norm_vector_graph[k] = grad_xk_norm
+        f_k_vector_graph[k] = f_xk
+        step_vector_graph[k] = delta_xk_norm
+
+        # Increasing outer iterations:
         k = k + 1
 
-        #xseq[k:] = xk
-        #btseq[:k] = bt
+        # Printing values to check if the method is working
+        if k % 500 == 0:
+            print(f' norm gradient: {grad_xk_norm}, '
+                  f'value function f(x)= {f_xk}, '
+                  f'value of step = {delta_xk_norm}')
+            # num_points[i] = k
+            # grad_norm_table[i] = grad_xk_norm
+            # f_k_table[i] = f_xk
+            # step_table[i] = delta_xk_norm
+            #i = i+1
 
-    #xseq = xseq[1:k, :]
-    #btseq = btseq[:, 1:k]
+    # Cutting the vectors for the graphs to the last value of k iterations
+    grad_norm_vector_graph = grad_norm_vector_graph[:k]
+    f_k_vector_graph = f_k_vector_graph[:k]
+    bt_vector = bt_vector[:k]
 
-    print(f"Last iteration: {xk}")
-    print(f"Number of iterations: {k}, norm gradient: {gradfk_norm}, value function f(x)= {f_xk}")
+    # Calculating the max and min values of the last x_k
+    max_value = np.max(x_k)
+    min_value = np.min(x_k)
+
+    # PRINTING LAST VALUES FOR ANALYSIS
+    print(f"Number of total iterations: {k},  "
+          f"Value of the last gradient norm: {grad_xk_norm}, "
+          f"Last value of  function f(x)= {f_xk}, "
+          f"Last value of  step = {delta_xk_norm}"
+          f"The maximum value of the backtracking steps is {np.max(bt_vector)}")
+    print(f"The individuals values of the last iteration are within: {min_value} and {max_value}")
     toc()
-    #print(f"Matrix of x:{xseq}")
+
+    # -------------------------- SECTION OF TABLES -----------------------------#
+
+    #table_values = np.stack((num_points, f_k_table, grad_norm_table, step_table), axis=-1)
+    #print(f"Table of Values {table_values}")
+    # --------------------------- SECTION OF GRAPHS-----------------------------#
+    # Calculating the values for x - axis:  from 0 to k iterations
+    num_iterations = list(range(0, k))
+
+    # Graph (1)
+    plt.plot(num_iterations, grad_norm_vector_graph, '-', linewidth=0.5, c='g')
+    plt.title("Forward  Finite Differences: Norm of the gradient vs Iterations")
+    plt.xlabel("Number of iterations")
+    plt.ylabel("Norm of the gradient")
+    plt.yscale('log')
+    plt.grid()
+    plt.savefig('grad_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
+    plt.show()
+
+    # Graph (2)
+    plt.plot(num_iterations, f_k_vector_graph, '-', linewidth=1, c='b')
+    plt.title("Forward  Finite Differences: Value of the function vs Iterations")
+    plt.xlabel("Number of iterations")
+    plt.ylabel("f(x)")
+    plt.yscale('log')
+    plt.grid()
+    plt.savefig('_function_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
+    plt.show()
+
+    # Graph (3)
+    #plt.plot(num_iterations, step_vector_graph, '-', linewidth=1, c='r')
+    # plt.title("Value of step vs Iterations")
+    # plt.xlabel("Number of iterations")
+    # plt.ylabel("Step")
+    # plt.yscale('log')
+    # plt.grid()
+    # plt.savefig('delta_vs_step_gam__app_grad.png', bbox_inches='tight')
+    # plt.show()
 
