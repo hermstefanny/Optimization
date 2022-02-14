@@ -42,8 +42,12 @@ def approx_gradient(x, lp, wv):
     i = x.shape[0]
     fin_diff = np.zeros(i)
     for j, k in enumerate(x):
-        xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
-        fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
+        a = np.array(x[0:j])
+        b = np.array(x[j+1:])
+        xhp = np.concatenate((a, x[j]+h, b), axis=None)
+        xhn = np.concatenate((a, x[j]-h, b), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xhp, i) -
+                       weighted_sphere_function(xhn, i)) / h
     return fin_diff
 
 
@@ -75,7 +79,7 @@ if __name__ == '__main__':
     n_val = 10**4
 
     # INIZIALIZATIONS OF PARAMETERS FOR THE PROCESS:
-    k_max = 100000
+    k_max = 10000
     bt_max = 100
     tolerance = 1e-12
     gamma = 1e-1
@@ -181,20 +185,22 @@ if __name__ == '__main__':
         k = k + 1
 
         # Printing values to check if the method is working
-        if k % 500 == 0:
+        if k % 100 == 0:
             print(f' norm gradient: {grad_xk_norm}, '
                   f'value function f(x)= {f_xk}, '
                   f'value of step = {delta_xk_norm}')
+            print(f'value max of bt = {np.max(bt_vector)}')
+            print(f'current iteration = {k}')
             # num_points[i] = k
             # grad_norm_table[i] = grad_xk_norm
             # f_k_table[i] = f_xk
             # step_table[i] = delta_xk_norm
-            #i = i+1
+            # i = i+1
 
     # Cutting the vectors for the graphs to the last value of k iterations
-    grad_norm_vector_graph = grad_norm_vector_graph[:k]
-    f_k_vector_graph = f_k_vector_graph[:k]
-    bt_vector = bt_vector[:k]
+    # grad_norm_vector_graph = grad_norm_vector_graph[:k]
+    # f_k_vector_graph = f_k_vector_graph[:k]
+    # bt_vector = bt_vector[:k]
 
     # Calculating the max and min values of the last x_k
     max_value = np.max(x_k)
@@ -215,27 +221,27 @@ if __name__ == '__main__':
     #print(f"Table of Values {table_values}")
     # --------------------------- SECTION OF GRAPHS-----------------------------#
     # Calculating the values for x - axis:  from 0 to k iterations
-    num_iterations = list(range(0, k))
+    # num_iterations = list(range(0, k))
 
     # Graph (1)
-    plt.plot(num_iterations, grad_norm_vector_graph, '-', linewidth=0.5, c='g')
-    plt.title("Forward  Finite Differences: Norm of the gradient vs Iterations")
-    plt.xlabel("Number of iterations")
-    plt.ylabel("Norm of the gradient")
-    plt.yscale('log')
-    plt.grid()
-    plt.savefig('grad_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
-    plt.show()
-
-    # Graph (2)
-    plt.plot(num_iterations, f_k_vector_graph, '-', linewidth=1, c='b')
-    plt.title("Forward  Finite Differences: Value of the function vs Iterations")
-    plt.xlabel("Number of iterations")
-    plt.ylabel("f(x)")
-    plt.yscale('log')
-    plt.grid()
-    plt.savefig('_function_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
-    plt.show()
+    # plt.plot(num_iterations, grad_norm_vector_graph, '-', linewidth=0.5, c='g')
+    # plt.title("Forward  Finite Differences: Norm of the gradient vs Iterations")
+    # plt.xlabel("Number of iterations")
+    # plt.ylabel("Norm of the gradient")
+    # plt.yscale('log')
+    # plt.grid()
+    # plt.savefig('grad_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
+    # plt.show()
+    #
+    # # Graph (2)
+    # plt.plot(num_iterations, f_k_vector_graph, '-', linewidth=1, c='b')
+    # plt.title("Forward  Finite Differences: Value of the function vs Iterations")
+    # plt.xlabel("Number of iterations")
+    # plt.ylabel("f(x)")
+    # plt.yscale('log')
+    # plt.grid()
+    # plt.savefig('_function_vs_step_gam_app_grad_n104.png', bbox_inches='tight')
+    # plt.show()
 
     # Graph (3)
     #plt.plot(num_iterations, step_vector_graph, '-', linewidth=1, c='r')

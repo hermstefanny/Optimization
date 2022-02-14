@@ -32,8 +32,17 @@ def weighted_sphere_function(x, dim):
     return wv
 
 
-def approx_gradient(x, l, wv):
-    h = 10 ** -l * np.linalg.norm(x)
+def approx_gradient(x, lp, wv):
+    h = 10 ** -lp * np.linalg.norm(x)
+    i = x.shape[0]
+    fin_diff = np.zeros(i)
+    for j, k in enumerate(x):
+        xh = np.concatenate((x[0:j], x[j]+h, x[j+1:]), axis=None)
+        fin_diff[j] = (weighted_sphere_function(xh, i) - wv) / h
+    return fin_diff
+
+def approx_gradient(x, lp, wv):
+    h = 10 ** -lp * np.linalg.norm(x)
     i = x.shape[0]
     fin_diff = np.zeros(i)
     for j, k in enumerate(x):

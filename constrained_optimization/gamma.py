@@ -54,12 +54,18 @@ def f_armijo_condition(fx, grad_fx, sigma_k, alpha_k, direction):
 
 if __name__ == '__main__':
     tic()
+    # Initialization of vector gamma
     gamma_vector = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1])
+
+    # Initialization of vector fro graphs
     grad_norm_vector = np.zeros(10)
     f_k_vector = np.zeros(10)
 
+
     for i, gamma in enumerate(gamma_vector):
         n_val = 10**3
+
+        # MAIN CODE #
 
         # stablishing x_0 in  n_val
         x0 = np.random.default_rng(seed=43).uniform(-10, 10, n_val)
@@ -128,19 +134,8 @@ if __name__ == '__main__':
 
             k = k + 1
 
-            #if k % 500 == 0:
-                #print(f' norm gradient: {grad_fk_norm}, value function f(x)= {f_xk}')
 
-            #xseq[k:] = xk
-            #btseq[:k] = bt
-
-        #xseq = xseq[1:k, :]
-        #btseq = btseq[:, 1:k]
-
-        #grad_norm_vector = grad_norm_vector[:k]
-        #f_k_vector = f_k_vector[:k]
-
-        #num_iterations = list(range(0, k))
+        #Saving the last value obtained with every gamma
 
         grad_norm_vector[i] = grad_fk_norm
         f_k_vector[i] = f_xk
@@ -153,6 +148,8 @@ if __name__ == '__main__':
         print(f"The individuals values of the last iteration are within: {min_value} and {max_value}")
 
     toc()
+    # --------------------------- SECTION OF GRAPHS-----------------------------#
+    # Values for x - axis: Vector of gamma, for y - axis: last norm of gradient
 
     plt.plot(gamma_vector, grad_norm_vector, '.-', linewidth=1, c='r')
     plt.title("Value of the norm of the gradient vs Gamma")
@@ -162,6 +159,8 @@ if __name__ == '__main__':
     plt.grid()
     plt.savefig('Final_Gradient_vs_gammas.png', bbox_inches='tight')
     plt.show()
+
+    # Values for x - axis: Vector of gamma, for y - axis: last value of function
 
     plt.plot(gamma_vector, f_k_vector, '.-', linewidth=1, c='y')
     plt.title("Value of the function in the final s vs Gamma")

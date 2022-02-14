@@ -61,10 +61,10 @@ if __name__ == '__main__':
     tic()
 
     # Number of values in vector x
-    n_val = 10**4
+    n_val = 10**5
 
     # INIZIALIZATIONS OF PARAMETERS FOR THE PROCESS:
-    k_max = 100000
+    k_max = 10000
     bt_max = 100
     tolerance = 1e-12
     gamma = 1e-1
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         k = k + 1
 
         # Printing values to check if the method is working
-        if k % 500 == 0:
+        if k % 10 == 0:
             print(f' norm gradient: {grad_xk_norm}, '
                   f'value function f(x)= {f_xk}, '
                   f'value of step = {delta_xk_norm}')
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     plt.ylabel("Norm of the gradient")
     plt.yscale('log')
     plt.grid()
-    plt.savefig('grad_vs_step_gam_n10_4.png', bbox_inches='tight')
+    plt.savefig('grad_vs_step_gam_n10_5.png', bbox_inches='tight')
     plt.show()
 
     # Graph (2)
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     plt.ylabel("f(x)")
     plt.yscale('log')
     plt.grid()
-    plt.savefig('function_vs_step_gam_n10_4.png', bbox_inches='tight')
+    plt.savefig('function_vs_step_gam_n10_5.png', bbox_inches='tight')
     plt.show()
 
     # Graph (3)
